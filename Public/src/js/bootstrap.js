@@ -1,0 +1,1 @@
+nsExtraComponents.CKTimer   =   require( './components/ck-timer.vue' ).default;
