@@ -9,10 +9,6 @@
     </div>
 @endsection
 
-@section( 'layout.dashboard.footer' )
+@section( 'layout.dashboard.footer.inject' )
     <script src="{{ asset( 'modules/clockin/dist/bootstrap.js' ) }}"></script>
-    @parent
-    <script>
-    console.log( window );
-    </script>
 @endsection
