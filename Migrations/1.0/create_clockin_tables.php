@@ -25,10 +25,10 @@ class CreateClockinTables extends Migration
             Schema::create( 'clockin_timer', function( Blueprint $table ) {
                 $table->increments( 'id' );
                 $table->integer( 'user_id' );
-                $table->datetime( 'from' );
-                $table->string( 'action' );
-                $table->datetime( 'to' );
-                $table->integer( 'total_minutes' )->default(0);
+                $table->datetime( 'from_moment' )->nullable();
+                $table->string( 'action' )->nullable();
+                $table->datetime( 'to_moment' )->nullable();
+                $table->integer( 'total_seconds' )->default(0);
             });
         }
 

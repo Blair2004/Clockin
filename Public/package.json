@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "moment": "^2.27.0",
+    "moment-duration-format": "^2.3.2",
     "vue-web-cam": "^1.9.0"
   }
 }
