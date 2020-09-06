@@ -140,9 +140,7 @@ export default {
             }, 1000 );
         },
         start( action ) {
-            nsHttpClient.post( '/api/modules/clockin/start', {
-                action: 'working'
-            })
+            nsHttpClient.post( '/api/modules/clockin/start', { action })
                 .subscribe( result => {
                     if ( result.status === 'success' ) {
                         this.action     =   action;
@@ -156,9 +154,7 @@ export default {
                 });        
         },
         stop( action ) {
-            nsHttpClient.post( '/api/modules/clockin/stop', {
-                action: 'working'
-            })
+            nsHttpClient.post( '/api/modules/clockin/stop', { action })
                 .subscribe( result => { 
                     this.action         =   null;
                     this.fullSeconds    =   0;

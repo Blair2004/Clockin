@@ -412,7 +412,7 @@ __webpack_require__.r(__webpack_exports__);
       var _this4 = this;
 
       nsHttpClient.post('/api/modules/clockin/start', {
-        action: 'working'
+        action: action
       }).subscribe(function (result) {
         if (result.status === 'success') {
           _this4.action = action;
@@ -429,7 +429,7 @@ __webpack_require__.r(__webpack_exports__);
       var _this5 = this;
 
       nsHttpClient.post('/api/modules/clockin/stop', {
-        action: 'working'
+        action: action
       }).subscribe(function (result) {
         _this5.action = null;
         _this5.fullSeconds = 0;
