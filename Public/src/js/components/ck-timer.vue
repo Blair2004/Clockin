@@ -3,6 +3,9 @@
         <div class="px-4 w-full md:w-1/2 lg:w-1/3">
             <h1 class="text-2xl">Timer</h1>
             <div class="rounded shadow my-3 bg-white flex flex-col">
+                <div>
+                    <web-cam :selectFirstDevice="true" :height="700"></web-cam>
+                </div>
                 <div class="flex flex-col justify-center items-center py-8 bg-blue-800">
                     <div id="counter" :class=" started ? 'animate-pulse' : ''" class="flex text-white flex-col justify-center items-center text-6xl">
                         <h3 class="font-bold">{{ hours }}:{{ minutes }}:{{ seconds }}</h3>
@@ -32,11 +35,13 @@
 </template>
 <script>
 import moment from 'moment';
-import { forkJoin } from 'rxjs';
-import * as duration from 'moment-duration-format';
+import { WebCam } from "vue-web-cam";
 
 export default {
     name: 'ck-timer',
+    components: {
+        WebCam
+    },
     data: () => {
         return {
             started: false,

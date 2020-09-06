@@ -265,9 +265,8 @@ function __classPrivateFieldSet(receiver, privateMap, value) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! moment */ "./node_modules/moment/moment.js");
 /* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(moment__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! rxjs */ "../../../node_modules/rxjs/_esm5/index.js");
-/* harmony import */ var moment_duration_format__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! moment-duration-format */ "./node_modules/moment-duration-format/lib/moment-duration-format.js");
-/* harmony import */ var moment_duration_format__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(moment_duration_format__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var vue_web_cam__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! vue-web-cam */ "./node_modules/vue-web-cam/dist/index.js");
+/* harmony import */ var vue_web_cam__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(vue_web_cam__WEBPACK_IMPORTED_MODULE_1__);
 //
 //
 //
@@ -300,11 +299,18 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+
 
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'ck-timer',
+  components: {
+    WebCam: vue_web_cam__WEBPACK_IMPORTED_MODULE_1__["WebCam"]
+  },
   data: function data() {
     return {
       started: false,
@@ -2505,6 +2511,12 @@ var render = function() {
       _c("h1", { staticClass: "text-2xl" }, [_vm._v("Timer")]),
       _vm._v(" "),
       _c("div", { staticClass: "rounded shadow my-3 bg-white flex flex-col" }, [
+        _c(
+          "div",
+          [_c("web-cam", { attrs: { selectFirstDevice: true, height: 700 } })],
+          1
+        ),
+        _vm._v(" "),
         _c(
           "div",
           {
