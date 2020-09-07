@@ -4,7 +4,7 @@
             <h1 class="text-2xl">Timer</h1>
             <div class="rounded shadow my-3 bg-white flex flex-col">
                 <div>
-                    <web-cam :selectFirstDevice="true" :height="700"></web-cam>
+                    <vue-web-cam @cameras="loadedCameras" :selectFirstDevice="true" :height="700"></vue-web-cam>
                 </div>
                 <div class="flex flex-col justify-center items-center py-8 bg-blue-800">
                     <div id="counter" :class=" started ? 'animate-pulse' : ''" class="flex text-white flex-col justify-center items-center text-6xl">
@@ -29,13 +29,18 @@
                     <p class="text-gray-700 text-sm"><strong>To: </strong> {{ history.to_moment }} </p>
                     <p class="text-gray-700 text-sm"><strong>Duration: </strong> {{ history.duration }} </p>
                 </div>
+                <div class="flex items-center justify-center py-4">
+                    <h3 v-if="! histories.data || histories.data.length === 0" class="text-gray-800">No history registered</h3>
+                </div>
             </div>
         </div>
     </div>
 </template>
 <script>
 import moment from 'moment';
+import * as duration from 'moment-duration-format';
 import { WebCam } from "vue-web-cam";
+import { forkJoin } from 'rxjs';
 
 export default {
     name: 'ck-timer',
@@ -85,6 +90,9 @@ export default {
         this.loadExistingCounter();
     },
     methods: {
+        loadedCameras( cameras ) {
+            console.log( cameras );
+        },
         loadExistingCounter() {
             forkJoin(
                 nsHttpClient.get( '/api/modules/clockin/get' ),
