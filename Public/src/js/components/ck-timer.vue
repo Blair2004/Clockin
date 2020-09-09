@@ -3,31 +3,47 @@
         <div class="px-4 w-full md:w-1/2 lg:w-1/3">
             <h1 class="text-2xl">Timer</h1>
             <div class="rounded shadow my-3 bg-white flex flex-col">
-                <div>
-                    <vue-web-cam @cameras="loadedCameras" :selectFirstDevice="true" :height="700"></vue-web-cam>
+                <div v-if="cameraStarted">
+                    <vue-web-cam 
+                        @error="handleErrorOnCamera" 
+                        @notsupported="handleErrorOnCamera"
+                        @started="handleCameraStarted"
+                        ref="webcam" 
+                        @cameras="loadedCameras" :selectFirstDevice="true" :height="700"></vue-web-cam>
                 </div>
                 <div class="flex flex-col justify-center items-center py-8 bg-blue-800">
                     <div id="counter" :class=" started ? 'animate-pulse' : ''" class="flex text-white flex-col justify-center items-center text-6xl">
                         <h3 class="font-bold">{{ hours }}:{{ minutes }}:{{ seconds }}</h3>
                     </div>
                 </div>
-                <div class="flex">
-                    <div @click="start( 'working' )" v-if="! started" class="flex-auto w-full items-center flex justify-center bg-blue-900 text-white font-bold cursor-pointer py-4">Start Working</div>
-                    <div @click="start( 'break' )" v-if="! started" class="flex-auto w-full items-center flex justify-center bg-teal-600 text-white font-bold cursor-pointer py-4">Start Break</div>
-                    <div @click="stop( 'working' )" v-if="started && action === 'working'" class="flex-auto w-full items-center flex justify-center bg-red-600 text-white font-bold cursor-pointer py-4">Stop Working</div>
-                    <div @click="stop( 'break' )" v-if="started && action === 'break'" class="flex-auto w-full items-center flex justify-center bg-red-600 text-white font-bold cursor-pointer py-4">Stop Break</div>
+                <div class="flex" v-if="! cameraDisabled">
+                    <template v-if="cameraStarted">
+                        <div @click="start( 'working' )" v-if="! started" class="flex-auto w-full items-center flex justify-center bg-blue-900 text-white font-bold cursor-pointer py-4">Start Working</div>
+                        <div @click="start( 'break' )" v-if="! started" class="flex-auto w-full items-center flex justify-center bg-teal-600 text-white font-bold cursor-pointer py-4">Start Break</div>
+                        <div @click="stop( 'working' )" v-if="started && action === 'working'" class="flex-auto w-full items-center flex justify-center bg-red-600 text-white font-bold cursor-pointer py-4">Stop Working</div>
+                        <div @click="stop( 'break' )" v-if="started && action === 'break'" class="flex-auto w-full items-center flex justify-center bg-red-600 text-white font-bold cursor-pointer py-4">Stop Break</div>
+                    </template>
+                    <div @click="cameraStarted = true" v-if="! cameraStarted" class="flex-auto w-full items-center flex justify-center bg-green-600 text-white font-bold cursor-pointer py-4">Start Camera</div>
+                </div>
+                <div class="flex" v-if="cameraDisabled">
+                    <div class="flex-auto w-full justify-center items-center bg-gray-700 py-4 text-white font-bold flex">Camera Disabled / Missing</div>
                 </div>
             </div>
         </div>
-        <div class="px-4 w-full md:w-1/2 lg:w-1/3">
+        <div class="px-4 w-full md:w-1/2 lg:w-2/3">
             <h1 class="text-2xl">History</h1>
             <div class="rounded shadow bg-white my-3">
-                <div :key="history.id" v-for="history of histories.data" class="flex flex-col p-2 border-b border-gray-300">
-                    <h3 class="text-gray-800 font-bold text-xl" v-if="history.action === 'working'">Working</h3>
-                    <h3 class="text-gray-800 font-bold text-xl" v-if="history.action === 'break'">Break</h3>
-                    <p class="text-gray-700 text-sm"><strong>From: </strong> {{ history.from_moment }} </p>
-                    <p class="text-gray-700 text-sm"><strong>To: </strong> {{ history.to_moment }} </p>
-                    <p class="text-gray-700 text-sm"><strong>Duration: </strong> {{ history.duration }} </p>
+                <div :key="history.id" v-for="history of histories.data" class="flex flex-col p-2 border-b border-gray-300 md:flex-row">
+                    <div class="flex flex-col flex-auto">
+                        <h3 class="text-gray-800 font-bold text-xl mb-2" v-if="history.action === 'working'">Working &mdash; <a :href="history.image_url_start" target="_blank" class="rounded-full px-2 py-1 rounded bg-white border text-sm font-normal">See Image</a></h3>
+                        <h3 class="text-gray-800 font-bold text-xl mb-2" v-if="history.action === 'break'">Break &mdash; <a :href="history.image_url_start" target="_blank" class="rounded-full px-2 py-1 rounded bg-white border text-sm font-normal">See Image</a></h3>
+                        <p class="text-gray-700 text-sm"><strong>From: </strong> {{ history.from_moment }} </p>
+                        <p class="text-gray-700 text-sm"><strong>To: </strong> {{ history.to_moment }} </p>
+                        <p class="text-gray-700 text-sm"><strong>Duration: </strong> {{ history.duration }} </p>
+                    </div>
+                    <div class="flex">
+                        <img :src="history.image_url_start" class="w-32">
+                    </div>
                 </div>
                 <div class="flex items-center justify-center py-4">
                     <h3 v-if="! histories.data || histories.data.length === 0" class="text-gray-800">No history registered</h3>
@@ -49,6 +65,8 @@ export default {
     },
     data: () => {
         return {
+            cameraDisabled: false,
+            cameraStarted: false,
             started: false,
             action: '',
             timer: null,
@@ -90,6 +108,25 @@ export default {
         this.loadExistingCounter();
     },
     methods: {
+        handleCameraStarted() {
+            this.cameraStarted      =   true;
+            this.cameraDisabled     =   false;
+        },
+        handleErrorOnCamera( error ) {
+            this.cameraDisabled     =   true;
+        },
+        dataURLtoFile(dataurl, filename) {
+            const arr = dataurl.split(',')
+            const mime = arr[0].match(/:(.*?);/)[1]
+            const bstr = atob(arr[1])
+            let n = bstr.length
+            const u8arr = new Uint8Array(n)
+            while (n) {
+                u8arr[n - 1] = bstr.charCodeAt(n - 1)
+                n -= 1 // to make eslint happy
+            }
+            return new File([u8arr], filename, { type: mime })
+        },
         loadedCameras( cameras ) {
             console.log( cameras );
         },
@@ -153,7 +190,16 @@ export default {
             }, 1000 );
         },
         start( action ) {
-            nsHttpClient.post( '/api/modules/clockin/start', { action })
+            const image     =   this.$refs.webcam.capture();
+            const file      =   this.dataURLtoFile( image, 'capture' );
+            const form      =   new FormData;
+            
+            form.append( 'file', file, file.name );
+            form.append( 'action', action );
+
+            nsHttpClient.post( '/api/modules/clockin/start', form, {
+                'Content-Type' : 'multipart/form-data'
+            })
                 .subscribe( result => {
                     if ( result.status === 'success' ) {
                         this.action     =   action;
@@ -167,7 +213,16 @@ export default {
                 });        
         },
         stop( action ) {
-            nsHttpClient.post( '/api/modules/clockin/stop', { action })
+            const image     =   this.$refs.webcam.capture();
+            const file      =   this.dataURLtoFile( image, 'capture' );
+            const form      =   new FormData;
+            
+            form.append( 'file', file, file.name );
+            form.append( 'action', action );
+
+            nsHttpClient.post( '/api/modules/clockin/stop', form, {
+                'Content-Type' : 'multipart/form-data'
+            })
                 .subscribe( result => { 
                     this.action         =   null;
                     this.fullSeconds    =   0;

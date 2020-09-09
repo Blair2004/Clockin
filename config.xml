@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <module>
     <namespace>Clockin</namespace>
-    <version>1.3</version>
+    <version>1.4</version>
     <author>Blair Jersyer</author>
     <name>Clock&#039;in</name>
     <description>Provide a simple clocking system for employees.</description>

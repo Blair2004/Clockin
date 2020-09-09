@@ -254,6 +254,549 @@ function __classPrivateFieldSet(receiver, privateMap, value) {
 
 /***/ }),
 
+/***/ "../../../resources/js/libraries/form-validation.js":
+/*!**************************************************************************!*\
+  !*** /var/www/html/NexoPOS-v4/resources/js/libraries/form-validation.js ***!
+  \**************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return FormValidation; });
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var FormValidation = /*#__PURE__*/function () {
+  function FormValidation() {
+    _classCallCheck(this, FormValidation);
+  }
+
+  _createClass(FormValidation, [{
+    key: "validateFields",
+    value: function validateFields(fields) {
+      var _this = this;
+
+      return fields.map(function (field) {
+        _this.checkField(field);
+
+        return field.errors.length === 0;
+      }).filter(function (f) {
+        return f === false;
+      }).length === 0;
+    }
+  }, {
+    key: "validateFieldsErrors",
+    value: function validateFieldsErrors(fields) {
+      var _this2 = this;
+
+      return fields.map(function (field) {
+        _this2.checkField(field);
+
+        return field.errors;
+      }).flat();
+    }
+  }, {
+    key: "validateForm",
+    value: function validateForm(form) {
+      if (form.main) {
+        this.validateField(form.main);
+      }
+
+      var globalErrors = [];
+
+      for (var key in form.tabs) {
+        var tabsInvalidity = [];
+        var validErrors = this.validateFieldsErrors(form.tabs[key].fields);
+
+        if (validErrors.length > 0) {
+          tabsInvalidity.push(validErrors);
+        }
+
+        form.tabs[key].errors = tabsInvalidity.flat();
+        globalErrors.push(tabsInvalidity.flat());
+      }
+
+      return globalErrors.flat();
+    }
+  }, {
+    key: "validateField",
+    value: function validateField(field) {
+      return this.checkField(field);
+    }
+  }, {
+    key: "createFields",
+    value: function createFields(fields) {
+      return fields.map(function (field) {
+        field.type = field.type || 'text', field.errors = field.errors || [];
+        field.disabled = field.disabled || false;
+        return field;
+      });
+    }
+  }, {
+    key: "createForm",
+    value: function createForm(form) {
+      if (form.main) {
+        form.main = this.createFields([form.main])[0];
+      }
+
+      if (form.tabs) {
+        for (var tab in form.tabs) {
+          form.tabs[tab].fields = this.createFields(form.tabs[tab].fields);
+          form.tabs[tab].errors = [];
+        }
+      }
+
+      return form;
+    }
+  }, {
+    key: "enableFields",
+    value: function enableFields(fields) {
+      return fields.map(function (field) {
+        return field.disabled = false;
+      });
+    }
+  }, {
+    key: "disableFields",
+    value: function disableFields(fields) {
+      return fields.map(function (field) {
+        return field.disabled = true;
+      });
+    }
+  }, {
+    key: "disableForm",
+    value: function disableForm(form) {
+      if (form.main) {
+        form.main.disabled = true;
+      }
+
+      for (var tab in form.tabs) {
+        form.tabs[tab].fields.forEach(function (field) {
+          return field.disabled = true;
+        });
+      }
+    }
+  }, {
+    key: "enableForm",
+    value: function enableForm(form) {
+      if (form.main) {
+        form.main.disabled = false;
+      }
+
+      for (var tab in form.tabs) {
+        form.tabs[tab].fields.forEach(function (field) {
+          return field.disabled = false;
+        });
+      }
+    }
+  }, {
+    key: "getValue",
+    value: function getValue(fields) {
+      var form = {};
+      fields.forEach(function (field) {
+        form[field.name] = field.value;
+      });
+      return form;
+    }
+  }, {
+    key: "checkField",
+    value: function checkField(field) {
+      var _this3 = this;
+
+      if (field.validation !== undefined) {
+        field.errors = [];
+        var rules = this.detectValidationRules(field.validation);
+        rules.forEach(function (rule) {
+          _this3.fieldPassCheck(field, rule);
+        });
+      }
+
+      return field;
+    }
+  }, {
+    key: "extractForm",
+    value: function extractForm(form) {
+      var formValue = {};
+
+      if (form.main) {
+        formValue[form.main.name] = form.main.value;
+      }
+
+      if (form.tabs) {
+        for (var tab in form.tabs) {
+          if (formValue[tab] === undefined) {
+            formValue[tab] = {};
+          }
+
+          formValue[tab] = this.extractFields(form.tabs[tab].fields);
+        }
+      }
+
+      return formValue;
+    }
+  }, {
+    key: "extractFields",
+    value: function extractFields(fields) {
+      var formValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      fields.forEach(function (field) {
+        if (['multiselect'].includes(field.type)) {
+          formValue[field.name] = field.options.filter(function (option) {
+            return option.selected;
+          }).map(function (option) {
+            return option.value;
+          });
+        } else {
+          formValue[field.name] = field.value;
+        }
+      });
+      return formValue;
+    }
+  }, {
+    key: "detectValidationRules",
+    value: function detectValidationRules(validation) {
+      var execRule = function execRule(rule) {
+        var finalRules = [];
+        var minRule = /(min)\:([0-9])+/g;
+        var maxRule = /(max)\:([0-9])+/g;
+        var matchRule = /(same):(\w+)/g;
+        var result;
+
+        if (['email', 'required'].includes(rule)) {
+          return {
+            identifier: rule
+          };
+        } else if (result = minRule.exec(rule)) {
+          return {
+            identifier: result[1],
+            value: result[2]
+          };
+        } else if (result = maxRule.exec(rule)) {
+          return {
+            identifier: result[1],
+            value: result[2]
+          };
+        }
+
+        return rule;
+      };
+
+      if (Array.isArray(validation)) {
+        return validation.filter(function (r) {
+          return typeof r === 'string';
+        }).map(execRule);
+      } else {
+        return validation.split('|').map(execRule);
+      }
+    }
+    /**
+     * Will trigger an error on the form
+     * if the error is a validation object.
+     * @param {Object} Form 
+     * @param {Object} data 
+     */
+
+  }, {
+    key: "triggerError",
+    value: function triggerError(form, data) {
+      if (data.errors) {
+        var _loop = function _loop(index) {
+          var path = index.split('.').filter(function (exp) {
+            return !/^\d+$/.test(exp);
+          });
+          /**
+           * if the validation path
+           * has 2 entries we believe it's a 
+           * an error on a field within a tab
+           */
+
+          if (path.length === 2) {
+            form.tabs[path[0]].fields.forEach(function (field) {
+              if (field.name === path[1]) {
+                data.errors[index].forEach(function (errorMessage) {
+                  var error = {
+                    identifier: 'invalid',
+                    invalid: true,
+                    message: errorMessage,
+                    name: field.name
+                  };
+                  field.errors.push(error);
+                });
+              }
+            });
+          }
+          /**
+           * @todo needs to do the same with the title
+           */
+
+
+          if (index === form.main.name) {
+            data.errors[index].forEach(function (errorMessage) {
+              form.main.errors.push({
+                identifier: 'invalid',
+                invalid: true,
+                message: errorMessage,
+                name: form.main.name
+              });
+            });
+          }
+        };
+
+        for (var index in data.errors) {
+          _loop(index);
+        }
+      }
+    }
+  }, {
+    key: "fieldPassCheck",
+    value: function fieldPassCheck(field, rule) {
+      if (rule.identifier === 'required') {
+        if (field.value === undefined || field.value === null || field.value.length === 0) {
+          // because we would like to stop the validation here
+          return field.errors.push({
+            identifier: rule.identifier,
+            invalid: true,
+            name: field.name
+          });
+        } else {
+          field.errors.forEach(function (error, index) {
+            if (error.identifier === rule.identifier && error.invalid === true) {
+              field.errors.splice(index, 1);
+              console.log(field);
+            }
+          });
+        }
+      }
+
+      if (rule.identifier === 'email') {
+        if (!/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(field.value)) {
+          // because we would like to stop the validation here
+          return field.errors.push({
+            identifier: rule.identifier,
+            invalid: true,
+            name: field.name
+          });
+        } else {
+          field.errors.forEach(function (error, index) {
+            if (error[rule.identifier] === true) {
+              field.errors.splice(index, 1);
+              console.log(field);
+            }
+          });
+        }
+      }
+
+      return field;
+    }
+  }]);
+
+  return FormValidation;
+}();
+
+
+
+/***/ }),
+
+/***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./src/js/components/ck-report.vue?vue&type=script&lang=js&":
+/*!**************************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./src/js/components/ck-report.vue?vue&type=script&lang=js& ***!
+  \**************************************************************************************************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _resources_js_libraries_form_validation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../../../resources/js/libraries/form-validation */ "../../../resources/js/libraries/form-validation.js");
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+  name: 'ck-report',
+  data: function data() {
+    return {
+      validation: new _resources_js_libraries_form_validation__WEBPACK_IMPORTED_MODULE_0__["default"](),
+      fields: [],
+      result: new Object(),
+      page: 1,
+      working_time: {},
+      break_time: {},
+      best_session_time: {}
+    };
+  },
+  computed: {
+    pagination: function pagination() {
+      if (this.result.history) {
+        return this.pageNumbers(this.result.last_page, this.result.current_page);
+      }
+
+      return [];
+    }
+  },
+  methods: {
+    loadReport: function loadReport() {
+      var _this = this;
+
+      nsHttpClient.post("/api/modules/clockin/report?page=".concat(this.page), this.validation.extractFields(this.fields)).subscribe(function (result) {
+        _this.result = result;
+        _this.page = result.history.current_page;
+        _this.working_time = {
+          hours: _this.hoursPad(result.total_working_time),
+          minutes: _this.minutesPad(result.total_working_time),
+          seconds: _this.secondsPad(result.total_working_time)
+        };
+        _this.break_time = {
+          hours: _this.hoursPad(result.total_break_time),
+          minutes: _this.minutesPad(result.total_break_time),
+          seconds: _this.secondsPad(result.total_break_time)
+        };
+        _this.best_session_time = {
+          hours: _this.hoursPad(result.best_session.total_seconds),
+          minutes: _this.minutesPad(result.best_session.total_seconds),
+          seconds: _this.secondsPad(result.best_session.total_seconds)
+        };
+      });
+    },
+    hoursPad: function hoursPad(seconds) {
+      return Math.floor(seconds / 3600).toString().padStart(2, '0');
+    },
+    minutesPad: function minutesPad(seconds) {
+      return Math.floor(seconds % 3600 / 60).toString().padStart(2, '0');
+    },
+    secondsPad: function secondsPad(seconds) {
+      return Math.floor(seconds % 60).toString().padStart(2, '0');
+    },
+    pageNumbers: function pageNumbers(count, current) {
+      var shownPages = 3;
+      var result = [];
+
+      if (current > count - shownPages) {
+        result.push(count - 2, count - 1, count);
+      } else {
+        result.push(current, current + 1, current + 2, '...', count);
+      }
+
+      return result.filter(function (f) {
+        return f > 0 || typeof f === 'string';
+      });
+    }
+  },
+  mounted: function mounted() {
+    var _this2 = this;
+
+    nsHttpClient.get('/api/nexopos/v4/forms/ck.report').subscribe(function (result) {
+      _this2.fields = _this2.validation.createFields(result.tabs.general.fields);
+    });
+  }
+});
+
+/***/ }),
+
 /***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./src/js/components/ck-timer.vue?vue&type=script&lang=js&":
 /*!*************************************************************************************************************************************************************!*\
   !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./src/js/components/ck-timer.vue?vue&type=script&lang=js& ***!
@@ -308,6 +851,22 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -319,6 +878,8 @@ __webpack_require__.r(__webpack_exports__);
   },
   data: function data() {
     return {
+      cameraDisabled: false,
+      cameraStarted: false,
       started: false,
       action: '',
       timer: null,
@@ -358,6 +919,29 @@ __webpack_require__.r(__webpack_exports__);
     this.loadExistingCounter();
   },
   methods: {
+    handleCameraStarted: function handleCameraStarted() {
+      this.cameraStarted = true;
+      this.cameraDisabled = false;
+    },
+    handleErrorOnCamera: function handleErrorOnCamera(error) {
+      this.cameraDisabled = true;
+    },
+    dataURLtoFile: function dataURLtoFile(dataurl, filename) {
+      var arr = dataurl.split(',');
+      var mime = arr[0].match(/:(.*?);/)[1];
+      var bstr = atob(arr[1]);
+      var n = bstr.length;
+      var u8arr = new Uint8Array(n);
+
+      while (n) {
+        u8arr[n - 1] = bstr.charCodeAt(n - 1);
+        n -= 1; // to make eslint happy
+      }
+
+      return new File([u8arr], filename, {
+        type: mime
+      });
+    },
     loadedCameras: function loadedCameras(cameras) {
       console.log(cameras);
     },
@@ -426,8 +1010,13 @@ __webpack_require__.r(__webpack_exports__);
     start: function start(action) {
       var _this4 = this;
 
-      nsHttpClient.post('/api/modules/clockin/start', {
-        action: action
+      var image = this.$refs.webcam.capture();
+      var file = this.dataURLtoFile(image, 'capture');
+      var form = new FormData();
+      form.append('file', file, file.name);
+      form.append('action', action);
+      nsHttpClient.post('/api/modules/clockin/start', form, {
+        'Content-Type': 'multipart/form-data'
       }).subscribe(function (result) {
         if (result.status === 'success') {
           _this4.action = action;
@@ -443,8 +1032,13 @@ __webpack_require__.r(__webpack_exports__);
     stop: function stop(action) {
       var _this5 = this;
 
-      nsHttpClient.post('/api/modules/clockin/stop', {
-        action: action
+      var image = this.$refs.webcam.capture();
+      var file = this.dataURLtoFile(image, 'capture');
+      var form = new FormData();
+      form.append('file', file, file.name);
+      form.append('action', action);
+      nsHttpClient.post('/api/modules/clockin/stop', form, {
+        'Content-Type': 'multipart/form-data'
       }).subscribe(function (result) {
         _this5.action = null;
         _this5.fullSeconds = 0;
@@ -2500,6 +3094,403 @@ webpackContext.id = "./node_modules/moment/locale sync recursive ^\\.\\/.*$";
 
 /***/ }),
 
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./src/js/components/ck-report.vue?vue&type=template&id=b6388286&":
+/*!******************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./src/js/components/ck-report.vue?vue&type=template&id=b6388286& ***!
+  \******************************************************************************************************************************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return staticRenderFns; });
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c("div", [
+    _c(
+      "div",
+      { staticClass: "-mx-4 flex flex-wrap", attrs: { id: "worker-cards" } },
+      [
+        _c("div", { staticClass: "px-4 w-full md:w-1/3 mb-4" }, [
+          _c(
+            "div",
+            {
+              staticClass:
+                "rounded-lg shadow-lg bg-transparent bg-gradient-to-tl from-blue-400 to-teal-400 p-4"
+            },
+            [
+              _c("h3", { staticClass: "text-white font-bold text-xl" }, [
+                _vm._v("Working Time")
+              ]),
+              _vm._v(" "),
+              _c("div", { staticClass: "flex -mx-1 items-end text-gray-100" }, [
+                _c("div", { staticClass: "px-1" }, [
+                  _c("h2", { staticClass: "font-bold text-6xl" }, [
+                    _vm._v(_vm._s(_vm.working_time.hours || 0)),
+                    _c("span", { staticClass: "text-lg" }, [_vm._v("h")])
+                  ])
+                ]),
+                _vm._v(" "),
+                _c("div", { staticClass: "px-1" }, [
+                  _c("h2", { staticClass: "font-bold text-6xl" }, [
+                    _vm._v(_vm._s(_vm.working_time.minutes || 0)),
+                    _c("span", { staticClass: "text-lg" }, [_vm._v("min")])
+                  ])
+                ]),
+                _vm._v(" "),
+                _c("div", { staticClass: "px-1" }, [
+                  _c("h2", { staticClass: "font-bold text-6xl" }, [
+                    _vm._v(_vm._s(_vm.working_time.seconds || 0)),
+                    _c("span", { staticClass: "text-lg" }, [_vm._v("sec")])
+                  ])
+                ])
+              ])
+            ]
+          )
+        ]),
+        _vm._v(" "),
+        _c("div", { staticClass: "px-4 w-full md:w-1/3 mb-4" }, [
+          _c(
+            "div",
+            {
+              staticClass:
+                "rounded-lg shadow-lg bg-transparent bg-gradient-to-br from-red-400 to-orange-400 p-4"
+            },
+            [
+              _c("h3", { staticClass: "text-white font-bold text-xl" }, [
+                _vm._v("Rest Time")
+              ]),
+              _vm._v(" "),
+              _c("div", { staticClass: "flex -mx-1 items-end text-gray-100" }, [
+                _c("div", { staticClass: "px-1" }, [
+                  _c("h2", { staticClass: "font-bold text-6xl" }, [
+                    _vm._v(_vm._s(_vm.break_time.hours || 0)),
+                    _c("span", { staticClass: "text-lg" }, [_vm._v("h")])
+                  ])
+                ]),
+                _vm._v(" "),
+                _c("div", { staticClass: "px-1" }, [
+                  _c("h2", { staticClass: "font-bold text-6xl" }, [
+                    _vm._v(_vm._s(_vm.break_time.minutes || 0)),
+                    _c("span", { staticClass: "text-lg" }, [_vm._v("min")])
+                  ])
+                ]),
+                _vm._v(" "),
+                _c("div", { staticClass: "px-1" }, [
+                  _c("h2", { staticClass: "font-bold text-6xl" }, [
+                    _vm._v(_vm._s(_vm.break_time.seconds || 0)),
+                    _c("span", { staticClass: "text-lg" }, [_vm._v("sec")])
+                  ])
+                ])
+              ])
+            ]
+          )
+        ]),
+        _vm._v(" "),
+        _c("div", { staticClass: "px-4 w-full md:w-1/3 mb-4" }, [
+          _c(
+            "div",
+            {
+              staticClass:
+                "rounded-lg shadow-lg bg-transparent bg-gradient-to-br from-indigo-400 to-green-400 p-4"
+            },
+            [
+              _c("h3", { staticClass: "text-white font-bold text-xl" }, [
+                _vm._v("Best Working Session")
+              ]),
+              _vm._v(" "),
+              _c("div", { staticClass: "flex -mx-1 items-end text-gray-100" }, [
+                _c("div", { staticClass: "px-1" }, [
+                  _c("h2", { staticClass: "font-bold text-6xl" }, [
+                    _vm._v(_vm._s(_vm.best_session_time.hours || 0)),
+                    _c("span", { staticClass: "text-lg" }, [_vm._v("h")])
+                  ])
+                ]),
+                _vm._v(" "),
+                _c("div", { staticClass: "px-1" }, [
+                  _c("h2", { staticClass: "font-bold text-6xl" }, [
+                    _vm._v(_vm._s(_vm.best_session_time.minutes)),
+                    _c("span", { staticClass: "text-lg" }, [_vm._v("min")])
+                  ])
+                ]),
+                _vm._v(" "),
+                _c("div", { staticClass: "px-1" }, [
+                  _c("h2", { staticClass: "font-bold text-6xl" }, [
+                    _vm._v(_vm._s(_vm.best_session_time.seconds)),
+                    _c("span", { staticClass: "text-lg" }, [_vm._v("sec")])
+                  ])
+                ])
+              ])
+            ]
+          )
+        ])
+      ]
+    ),
+    _vm._v(" "),
+    _c(
+      "div",
+      {
+        staticClass: "shadow-lg rounded-lg bg-white p-4 mb-4",
+        attrs: { id: "worker-selector" }
+      },
+      [
+        _c(
+          "div",
+          { staticClass: "-mx-4 flex flex-wrap rounded-lg" },
+          _vm._l(_vm.fields, function(field, index) {
+            return _c(
+              "div",
+              { key: index, staticClass: "px-4 w-full md:w-1/3" },
+              [_c("ns-field", { attrs: { field: field } })],
+              1
+            )
+          }),
+          0
+        ),
+        _vm._v(" "),
+        _c(
+          "div",
+          [
+            _c(
+              "ns-button",
+              {
+                attrs: { type: "info" },
+                on: {
+                  click: function($event) {
+                    return _vm.loadReport()
+                  }
+                }
+              },
+              [_vm._v("Load")]
+            )
+          ],
+          1
+        )
+      ]
+    ),
+    _vm._v(" "),
+    _vm.result.history
+      ? _c("div", { staticClass: "rounded-lg shadow-lg mb-4 bg-white" }, [
+          _c("table", { staticClass: "w-full" }, [
+            _vm._m(0),
+            _vm._v(" "),
+            _c(
+              "tbody",
+              { staticClass: "text-gray-600" },
+              _vm._l(_vm.result.history.data, function(history) {
+                return _c("tr", { key: history.id }, [
+                  _c(
+                    "td",
+                    { staticClass: "p-2 bg-white border border-gray-400" },
+                    [_vm._v(_vm._s(history.action))]
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "td",
+                    { staticClass: "p-2 bg-white border border-gray-400" },
+                    [_vm._v(_vm._s(history.from_moment))]
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "td",
+                    { staticClass: "p-2 bg-white border border-gray-400" },
+                    [_vm._v(_vm._s(history.to_moment))]
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "td",
+                    { staticClass: "p-2 bg-white border border-gray-400" },
+                    [
+                      _vm._v(
+                        _vm._s(
+                          _vm.hoursPad(history.total_seconds) +
+                            ":" +
+                            _vm.minutesPad(history.total_seconds) +
+                            ":" +
+                            _vm.secondsPad(history.total_seconds)
+                        )
+                      )
+                    ]
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "td",
+                    { staticClass: "p-2 bg-white border border-gray-400" },
+                    [
+                      _c(
+                        "a",
+                        {
+                          staticClass:
+                            "rounded-lg border py-1 px-2 font-bold text-gray-700",
+                          attrs: {
+                            href: history.image_url_start,
+                            target: "_blank"
+                          }
+                        },
+                        [
+                          _c("i", { staticClass: "las la-eye" }),
+                          _vm._v(" See Image")
+                        ]
+                      )
+                    ]
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "td",
+                    { staticClass: "p-2 bg-white border border-gray-400" },
+                    [
+                      _c(
+                        "a",
+                        {
+                          staticClass:
+                            "rounded-lg border py-1 px-2 font-bold text-gray-700",
+                          attrs: {
+                            href: history.image_url_end,
+                            target: "_blank"
+                          }
+                        },
+                        [
+                          _c("i", { staticClass: "las la-eye" }),
+                          _vm._v(" See Image")
+                        ]
+                      )
+                    ]
+                  )
+                ])
+              }),
+              0
+            )
+          ]),
+          _vm._v(" "),
+          _c(
+            "div",
+            { staticClass: "flex -mx-1", attrs: { id: "pagination" } },
+            [
+              _vm.result.current_page
+                ? [
+                    _c(
+                      "a",
+                      {
+                        staticClass:
+                          "mx-1 flex items-center justify-center h-8 w-8 rounded-full bg-gray-200 text-gray-700 hover:bg-blue-400 hover:text-white shadow",
+                        attrs: { href: "javascript:void(0)" },
+                        on: {
+                          click: function($event) {
+                            _vm.page = _vm.result.first_page
+                            _vm.loadReport()
+                          }
+                        }
+                      },
+                      [_c("i", { staticClass: "las la-angle-double-left" })]
+                    ),
+                    _vm._v(" "),
+                    _vm._l(_vm.pagination, function(_paginationPage, index) {
+                      return [
+                        _vm.page !== "..."
+                          ? _c(
+                              "a",
+                              {
+                                key: index,
+                                staticClass:
+                                  "mx-1 flex items-center justify-center h-8 w-8 rounded-full hover:bg-blue-400 hover:text-white",
+                                class:
+                                  _vm.page == _paginationPage
+                                    ? "bg-blue-400 text-white"
+                                    : "bg-gray-200 text-gray-700",
+                                attrs: { href: "javascript:void(0)" },
+                                on: {
+                                  click: function($event) {
+                                    _vm.page = _paginationPage
+                                    _vm.loadReport()
+                                  }
+                                }
+                              },
+                              [_vm._v(_vm._s(_paginationPage))]
+                            )
+                          : _vm._e(),
+                        _vm._v(" "),
+                        _vm.page === "..."
+                          ? _c(
+                              "a",
+                              {
+                                key: index,
+                                staticClass:
+                                  "mx-1 flex items-center justify-center h-8 w-8 rounded-full bg-gray-200 text-gray-700",
+                                attrs: { href: "javascript:void(0)" }
+                              },
+                              [_vm._v("...")]
+                            )
+                          : _vm._e()
+                      ]
+                    }),
+                    _vm._v(" "),
+                    _c(
+                      "a",
+                      {
+                        staticClass:
+                          "mx-1 flex items-center justify-center h-8 w-8 rounded-full bg-gray-200 text-gray-700 hover:bg-blue-400 hover:text-white shadow",
+                        attrs: { href: "javascript:void(0)" },
+                        on: {
+                          click: function($event) {
+                            _vm.page = _vm.result.last_page
+                            _vm.loadReport()
+                          }
+                        }
+                      },
+                      [_c("i", { staticClass: "las la-angle-double-right" })]
+                    )
+                  ]
+                : _vm._e()
+            ],
+            2
+          )
+        ])
+      : _vm._e()
+  ])
+}
+var staticRenderFns = [
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("thead", [
+      _c("tr", { staticClass: "text-gray-700" }, [
+        _c("td", { staticClass: "p-2 border border-gray-400 bg-gray-100" }, [
+          _vm._v("Type")
+        ]),
+        _vm._v(" "),
+        _c("td", { staticClass: "p-2 border border-gray-400 bg-gray-100" }, [
+          _vm._v("Starting Time")
+        ]),
+        _vm._v(" "),
+        _c("td", { staticClass: "p-2 border border-gray-400 bg-gray-100" }, [
+          _vm._v("Ending Time")
+        ]),
+        _vm._v(" "),
+        _c("td", { staticClass: "p-2 border border-gray-400 bg-gray-100" }, [
+          _vm._v("Total Time")
+        ]),
+        _vm._v(" "),
+        _c("td", { staticClass: "p-2 border border-gray-400 bg-gray-100" }, [
+          _vm._v("Starting Image")
+        ]),
+        _vm._v(" "),
+        _c("td", { staticClass: "p-2 border border-gray-400 bg-gray-100" }, [
+          _vm._v("Ending Image")
+        ])
+      ])
+    ])
+  }
+]
+render._withStripped = true
+
+
+
+/***/ }),
+
 /***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./src/js/components/ck-timer.vue?vue&type=template&id=59aa8768&":
 /*!*****************************************************************************************************************************************************************************************************!*\
   !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./src/js/components/ck-timer.vue?vue&type=template&id=59aa8768& ***!
@@ -2520,16 +3511,24 @@ var render = function() {
       _c("h1", { staticClass: "text-2xl" }, [_vm._v("Timer")]),
       _vm._v(" "),
       _c("div", { staticClass: "rounded shadow my-3 bg-white flex flex-col" }, [
-        _c(
-          "div",
-          [
-            _c("vue-web-cam", {
-              attrs: { selectFirstDevice: true, height: 700 },
-              on: { cameras: _vm.loadedCameras }
-            })
-          ],
-          1
-        ),
+        _vm.cameraStarted
+          ? _c(
+              "div",
+              [
+                _c("vue-web-cam", {
+                  ref: "webcam",
+                  attrs: { selectFirstDevice: true, height: 700 },
+                  on: {
+                    error: _vm.handleErrorOnCamera,
+                    notsupported: _vm.handleErrorOnCamera,
+                    started: _vm.handleCameraStarted,
+                    cameras: _vm.loadedCameras
+                  }
+                })
+              ],
+              1
+            )
+          : _vm._e(),
         _vm._v(" "),
         _c(
           "div",
@@ -2561,75 +3560,115 @@ var render = function() {
           ]
         ),
         _vm._v(" "),
-        _c("div", { staticClass: "flex" }, [
-          !_vm.started
-            ? _c(
+        !_vm.cameraDisabled
+          ? _c(
+              "div",
+              { staticClass: "flex" },
+              [
+                _vm.cameraStarted
+                  ? [
+                      !_vm.started
+                        ? _c(
+                            "div",
+                            {
+                              staticClass:
+                                "flex-auto w-full items-center flex justify-center bg-blue-900 text-white font-bold cursor-pointer py-4",
+                              on: {
+                                click: function($event) {
+                                  return _vm.start("working")
+                                }
+                              }
+                            },
+                            [_vm._v("Start Working")]
+                          )
+                        : _vm._e(),
+                      _vm._v(" "),
+                      !_vm.started
+                        ? _c(
+                            "div",
+                            {
+                              staticClass:
+                                "flex-auto w-full items-center flex justify-center bg-teal-600 text-white font-bold cursor-pointer py-4",
+                              on: {
+                                click: function($event) {
+                                  return _vm.start("break")
+                                }
+                              }
+                            },
+                            [_vm._v("Start Break")]
+                          )
+                        : _vm._e(),
+                      _vm._v(" "),
+                      _vm.started && _vm.action === "working"
+                        ? _c(
+                            "div",
+                            {
+                              staticClass:
+                                "flex-auto w-full items-center flex justify-center bg-red-600 text-white font-bold cursor-pointer py-4",
+                              on: {
+                                click: function($event) {
+                                  return _vm.stop("working")
+                                }
+                              }
+                            },
+                            [_vm._v("Stop Working")]
+                          )
+                        : _vm._e(),
+                      _vm._v(" "),
+                      _vm.started && _vm.action === "break"
+                        ? _c(
+                            "div",
+                            {
+                              staticClass:
+                                "flex-auto w-full items-center flex justify-center bg-red-600 text-white font-bold cursor-pointer py-4",
+                              on: {
+                                click: function($event) {
+                                  return _vm.stop("break")
+                                }
+                              }
+                            },
+                            [_vm._v("Stop Break")]
+                          )
+                        : _vm._e()
+                    ]
+                  : _vm._e(),
+                _vm._v(" "),
+                !_vm.cameraStarted
+                  ? _c(
+                      "div",
+                      {
+                        staticClass:
+                          "flex-auto w-full items-center flex justify-center bg-green-600 text-white font-bold cursor-pointer py-4",
+                        on: {
+                          click: function($event) {
+                            _vm.cameraStarted = true
+                          }
+                        }
+                      },
+                      [_vm._v("Start Camera")]
+                    )
+                  : _vm._e()
+              ],
+              2
+            )
+          : _vm._e(),
+        _vm._v(" "),
+        _vm.cameraDisabled
+          ? _c("div", { staticClass: "flex" }, [
+              _c(
                 "div",
                 {
                   staticClass:
-                    "flex-auto w-full items-center flex justify-center bg-blue-900 text-white font-bold cursor-pointer py-4",
-                  on: {
-                    click: function($event) {
-                      return _vm.start("working")
-                    }
-                  }
+                    "flex-auto w-full justify-center items-center bg-gray-700 py-4 text-white font-bold flex"
                 },
-                [_vm._v("Start Working")]
+                [_vm._v("Camera Disabled / Missing")]
               )
-            : _vm._e(),
-          _vm._v(" "),
-          !_vm.started
-            ? _c(
-                "div",
-                {
-                  staticClass:
-                    "flex-auto w-full items-center flex justify-center bg-teal-600 text-white font-bold cursor-pointer py-4",
-                  on: {
-                    click: function($event) {
-                      return _vm.start("break")
-                    }
-                  }
-                },
-                [_vm._v("Start Break")]
-              )
-            : _vm._e(),
-          _vm._v(" "),
-          _vm.started && _vm.action === "working"
-            ? _c(
-                "div",
-                {
-                  staticClass:
-                    "flex-auto w-full items-center flex justify-center bg-red-600 text-white font-bold cursor-pointer py-4",
-                  on: {
-                    click: function($event) {
-                      return _vm.stop("working")
-                    }
-                  }
-                },
-                [_vm._v("Stop Working")]
-              )
-            : _vm._e(),
-          _vm._v(" "),
-          _vm.started && _vm.action === "break"
-            ? _c(
-                "div",
-                {
-                  staticClass:
-                    "flex-auto w-full items-center flex justify-center bg-red-600 text-white font-bold cursor-pointer py-4",
-                  on: {
-                    click: function($event) {
-                      return _vm.stop("break")
-                    }
-                  }
-                },
-                [_vm._v("Stop Break")]
-              )
-            : _vm._e()
-        ])
+            ])
+          : _vm._e()
       ])
     ]),
     _vm._v(" "),
-    _c("div", { staticClass: "px-4 w-full md:w-1/2 lg:w-1/3" }, [
+    _c("div", { staticClass: "px-4 w-full md:w-1/2 lg:w-2/3" }, [
       _c("h1", { staticClass: "text-2xl" }, [_vm._v("History")]),
       _vm._v(" "),
       _c(
@@ -2641,38 +3680,76 @@ var render = function() {
               "div",
               {
                 key: history.id,
-                staticClass: "flex flex-col p-2 border-b border-gray-300"
+                staticClass:
+                  "flex flex-col p-2 border-b border-gray-300 md:flex-row"
               },
               [
-                history.action === "working"
-                  ? _c(
-                      "h3",
-                      { staticClass: "text-gray-800 font-bold text-xl" },
-                      [_vm._v("Working")]
-                    )
-                  : _vm._e(),
-                _vm._v(" "),
-                history.action === "break"
-                  ? _c(
-                      "h3",
-                      { staticClass: "text-gray-800 font-bold text-xl" },
-                      [_vm._v("Break")]
-                    )
-                  : _vm._e(),
-                _vm._v(" "),
-                _c("p", { staticClass: "text-gray-700 text-sm" }, [
-                  _c("strong", [_vm._v("From: ")]),
-                  _vm._v(" " + _vm._s(history.from_moment) + " ")
+                _c("div", { staticClass: "flex flex-col flex-auto" }, [
+                  history.action === "working"
+                    ? _c(
+                        "h3",
+                        { staticClass: "text-gray-800 font-bold text-xl mb-2" },
+                        [
+                          _vm._v("Working — "),
+                          _c(
+                            "a",
+                            {
+                              staticClass:
+                                "rounded-full px-2 py-1 rounded bg-white border text-sm font-normal",
+                              attrs: {
+                                href: history.image_url_start,
+                                target: "_blank"
+                              }
+                            },
+                            [_vm._v("See Image")]
+                          )
+                        ]
+                      )
+                    : _vm._e(),
+                  _vm._v(" "),
+                  history.action === "break"
+                    ? _c(
+                        "h3",
+                        { staticClass: "text-gray-800 font-bold text-xl mb-2" },
+                        [
+                          _vm._v("Break — "),
+                          _c(
+                            "a",
+                            {
+                              staticClass:
+                                "rounded-full px-2 py-1 rounded bg-white border text-sm font-normal",
+                              attrs: {
+                                href: history.image_url_start,
+                                target: "_blank"
+                              }
+                            },
+                            [_vm._v("See Image")]
+                          )
+                        ]
+                      )
+                    : _vm._e(),
+                  _vm._v(" "),
+                  _c("p", { staticClass: "text-gray-700 text-sm" }, [
+                    _c("strong", [_vm._v("From: ")]),
+                    _vm._v(" " + _vm._s(history.from_moment) + " ")
+                  ]),
+                  _vm._v(" "),
+                  _c("p", { staticClass: "text-gray-700 text-sm" }, [
+                    _c("strong", [_vm._v("To: ")]),
+                    _vm._v(" " + _vm._s(history.to_moment) + " ")
+                  ]),
+                  _vm._v(" "),
+                  _c("p", { staticClass: "text-gray-700 text-sm" }, [
+                    _c("strong", [_vm._v("Duration: ")]),
+                    _vm._v(" " + _vm._s(history.duration) + " ")
+                  ])
                 ]),
                 _vm._v(" "),
-                _c("p", { staticClass: "text-gray-700 text-sm" }, [
-                  _c("strong", [_vm._v("To: ")]),
-                  _vm._v(" " + _vm._s(history.to_moment) + " ")
-                ]),
-                _vm._v(" "),
-                _c("p", { staticClass: "text-gray-700 text-sm" }, [
-                  _c("strong", [_vm._v("Duration: ")]),
-                  _vm._v(" " + _vm._s(history.duration) + " ")
+                _c("div", { staticClass: "flex" }, [
+                  _c("img", {
+                    staticClass: "w-32",
+                    attrs: { src: history.image_url_start }
+                  })
                 ])
               ]
             )
@@ -2864,7 +3941,78 @@ module.exports = function(module) {
 var WebCam = __webpack_require__(/*! vue-web-cam */ "./node_modules/vue-web-cam/dist/index.js");
 
 nsExtraComponents.CkTimer = __webpack_require__(/*! ./components/ck-timer.vue */ "./src/js/components/ck-timer.vue")["default"];
+nsExtraComponents.CkReport = __webpack_require__(/*! ./components/ck-report.vue */ "./src/js/components/ck-report.vue")["default"];
 nsExtraComponents['vue-web-cam'] = WebCam;
+console.log(nsExtraComponents);
+
+/***/ }),
+
+/***/ "./src/js/components/ck-report.vue":
+/*!*****************************************!*\
+  !*** ./src/js/components/ck-report.vue ***!
+  \*****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _ck_report_vue_vue_type_template_id_b6388286___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ck-report.vue?vue&type=template&id=b6388286& */ "./src/js/components/ck-report.vue?vue&type=template&id=b6388286&");
+/* harmony import */ var _ck_report_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ck-report.vue?vue&type=script&lang=js& */ "./src/js/components/ck-report.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
+
+
+
+
+/* normalize component */
+
+var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__["default"])(
+  _ck_report_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _ck_report_vue_vue_type_template_id_b6388286___WEBPACK_IMPORTED_MODULE_0__["render"],
+  _ck_report_vue_vue_type_template_id_b6388286___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* hot reload */
+if (false) { var api; }
+component.options.__file = "src/js/components/ck-report.vue"
+/* harmony default export */ __webpack_exports__["default"] = (component.exports);
+
+/***/ }),
+
+/***/ "./src/js/components/ck-report.vue?vue&type=script&lang=js&":
+/*!******************************************************************!*\
+  !*** ./src/js/components/ck-report.vue?vue&type=script&lang=js& ***!
+  \******************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_ck_report_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib??ref--4-0!../../../node_modules/vue-loader/lib??vue-loader-options!./ck-report.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./src/js/components/ck-report.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_ck_report_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+
+/***/ }),
+
+/***/ "./src/js/components/ck-report.vue?vue&type=template&id=b6388286&":
+/*!************************************************************************!*\
+  !*** ./src/js/components/ck-report.vue?vue&type=template&id=b6388286& ***!
+  \************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_ck_report_vue_vue_type_template_id_b6388286___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../node_modules/vue-loader/lib??vue-loader-options!./ck-report.vue?vue&type=template&id=b6388286& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./src/js/components/ck-report.vue?vue&type=template&id=b6388286&");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_ck_report_vue_vue_type_template_id_b6388286___WEBPACK_IMPORTED_MODULE_0__["render"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_ck_report_vue_vue_type_template_id_b6388286___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
+
+
 
 /***/ }),
 
