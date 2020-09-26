@@ -105,7 +105,6 @@
     </div>
 </template>
 <script>
-import FormValidation from '../../../../../../resources/js/libraries/form-validation'
 export default {
     name: 'ck-report',
     data() {
